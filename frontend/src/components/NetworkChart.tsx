@@ -1,7 +1,9 @@
 import {
+  Area,
+  AreaChart,
   CartesianGrid,
   Line,
-  LineChart,
+  ReferenceLine,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -10,8 +12,10 @@ import {
 import type { MetricsPoint } from '../api/useMetricsStream'
 import { formatRate, OXIDE } from '../utils'
 import type { ChartTheme } from '../theme'
+import { useI18n } from '../i18n'
 
 export function NetworkChart({ data, t }: { data: MetricsPoint[]; t: ChartTheme }) {
+  const { t: tr } = useI18n()
   const points = data.map((p) => ({
     time: p.time,
     rx: p.network.rx_bytes_per_sec,
@@ -20,7 +24,13 @@ export function NetworkChart({ data, t }: { data: MetricsPoint[]; t: ChartTheme 
 
   return (
     <ResponsiveContainer width="100%" height={200}>
-      <LineChart data={points} margin={{ top: 8, right: 12, bottom: 0, left: 4 }}>
+      <AreaChart data={points} margin={{ top: 8, right: 12, bottom: 0, left: 4 }}>
+        <defs>
+          <linearGradient id="rxFill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={OXIDE.patina} stopOpacity={0.28} />
+            <stop offset="100%" stopColor={OXIDE.patina} stopOpacity={0.02} />
+          </linearGradient>
+        </defs>
         <CartesianGrid stroke={t.grid} strokeWidth={0.6} vertical />
         <XAxis
           dataKey="time"
@@ -47,16 +57,25 @@ export function NetworkChart({ data, t }: { data: MetricsPoint[]; t: ChartTheme 
             fontFamily: 'JetBrains Mono, monospace',
             fontSize: 12,
           }}
-          labelStyle={{ color: t.axis, fontSize: 11 }}
+          labelStyle={{
+            color: t.ink,
+            fontSize: 10,
+            fontFamily: 'Chakra Petch, sans-serif',
+            letterSpacing: '0.18em',
+            textTransform: 'uppercase',
+            marginBottom: 4,
+          }}
           itemStyle={{ color: t.ink }}
           formatter={(v: number) => formatRate(v)}
         />
-        <Line
+        <ReferenceLine y={0} stroke={t.grid} strokeWidth={1} />
+        <Area
           type="monotone"
           dataKey="rx"
-          name="↓ приймання"
+          name={`↓ ${tr('net.rx')}`}
           stroke={OXIDE.patina}
           strokeWidth={1.8}
+          fill="url(#rxFill)"
           dot={false}
           activeDot={{ r: 3, fill: OXIDE.patina, stroke: t.panel, strokeWidth: 2 }}
           isAnimationActive={false}
@@ -64,14 +83,14 @@ export function NetworkChart({ data, t }: { data: MetricsPoint[]; t: ChartTheme 
         <Line
           type="monotone"
           dataKey="tx"
-          name="↑ передавання"
+          name={`↑ ${tr('net.tx')}`}
           stroke={OXIDE.amber}
-          strokeWidth={1.8}
+          strokeWidth={1.6}
           dot={false}
           activeDot={{ r: 3, fill: OXIDE.amber, stroke: t.panel, strokeWidth: 2 }}
           isAnimationActive={false}
         />
-      </LineChart>
+      </AreaChart>
     </ResponsiveContainer>
   )
 }

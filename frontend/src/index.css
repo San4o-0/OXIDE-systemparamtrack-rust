@@ -1,30 +1,30 @@
-/* ============================================================
-   OXIDE — телеметрія системи як вимірювальний прилад
-   Навантаження окислює метал: патина → латунь → жар.
-   ============================================================ */
+
 
 :root {
-  /* машинований корпус */
-  --steel-900: #14171a;   /* холоднокатана сталь — фон */
-  --steel-850: #181b1f;   /* заглиблення */
-  --steel-800: #1c2024;   /* фрезерована панель */
-  --steel-750: #22272c;   /* підняте ребро */
-  --steel-line: #2e343a;  /* гравіювання, шви */
+  
+  --steel-900: #14171a;   
+  --steel-850: #181b1f;   
+  --steel-800: #1c2024;   
+  --steel-750: #22272c;   
+  --steel-line: #2e343a;  
   --steel-line-soft: #23282d;
 
-  /* шовкографія */
-  --bone: #e8e6e1;        /* етикетковий текст */
-  --zinc: #8b949e;        /* оцинкований, приглушений */
-  --zinc-dim: #5c646c;    /* дрібні підписи */
+  
+  --bone: #e8e6e1;        
+  --zinc: #8b949e;        
+  --zinc-dim: #5c646c;    
 
-  /* рампа навантаження — окислення */
-  --patina: #3fb6a8;      /* холодний простій */
-  --amber: #e0a03a;       /* нагрів */
-  --ember: #e2543a;       /* жар */
+  
+  --patina: #3fb6a8;      
+  --amber: #e0a03a;       
+  --ember: #e2543a;       
 
   --patina-glow: rgba(63, 182, 168, 0.35);
 
-  --r: 4px;               /* фаска корпусу — мінімальна, як у металу */
+  --bevel-top: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  --lift: 0 1px 0 rgba(0, 0, 0, 0.35), 0 6px 18px -10px rgba(0, 0, 0, 0.55);
+
+  --r: 4px;
   --gap: 18px;
 
   color-scheme: dark;
@@ -40,7 +40,7 @@
 body {
   margin: 0;
   background: var(--steel-900);
-  /* ледь помітна фактура фрезерованого металу + віньєтка */
+  
   background-image:
     radial-gradient(120% 80% at 50% -10%, #1b1f24 0%, var(--steel-900) 60%),
     repeating-linear-gradient(
@@ -62,17 +62,11 @@ code {
   color: var(--bone);
 }
 
-/* ---------- каркас ---------- */
-
 .app {
   max-width: 1180px;
   margin: 0 auto;
   padding: 0 22px 64px;
 }
-
-/* ===========================================================
-   FACEPLATE — лицьова панель приладу
-   =========================================================== */
 
 .faceplate {
   position: sticky;
@@ -100,11 +94,10 @@ code {
   font-weight: 700;
   font-size: 22px;
   letter-spacing: 0.34em;
-  padding-left: 0.34em; /* компенсація трекінгу справа */
+  padding-left: 0.34em; 
   color: var(--bone);
 }
 
-/* пульсуюча «жила» в мітці — серцебиття сигналу */
 .mark__bar {
   display: inline-block;
   width: 9px;
@@ -139,7 +132,6 @@ code {
   font-weight: 500;
 }
 
-/* статус підключення — світловий індикатор приладу */
 .signal {
   display: inline-flex;
   align-items: center;
@@ -181,34 +173,15 @@ code {
   background: var(--ember);
 }
 
-/* ===========================================================
-   HERO — глобальне навантаження як жива осцилограма
-   =========================================================== */
-
 .hero {
   position: relative;
   border: 1px solid var(--steel-line);
   border-radius: var(--r);
-  background:
-    linear-gradient(180deg, var(--steel-800), var(--steel-850));
+  background: linear-gradient(180deg, var(--steel-800), var(--steel-850));
+  box-shadow: var(--bevel-top), var(--lift);
   overflow: hidden;
   margin-bottom: var(--gap);
 }
-
-/* кутові «гвинти»/реперні мітки приладу */
-.hero::before,
-.hero::after {
-  content: '';
-  position: absolute;
-  top: 12px;
-  width: 7px;
-  height: 7px;
-  border: 1px solid var(--steel-line);
-  border-radius: 50%;
-  opacity: 0.7;
-}
-.hero::before { left: 12px; }
-.hero::after { right: 12px; }
 
 .hero__head {
   position: absolute;
@@ -239,12 +212,14 @@ code {
 .hero__value {
   font-family: 'JetBrains Mono', monospace;
   font-weight: 800;
-  font-size: clamp(56px, 11vw, 116px);
-  line-height: 0.82;
-  letter-spacing: -0.04em;
-  font-variant-numeric: tabular-nums;
+  font-size: clamp(56px, 11vw, 124px);
+  line-height: 0.78;
+  letter-spacing: -0.045em;
+  font-variant-numeric: tabular-nums slashed-zero;
   color: var(--bone);
-  text-shadow: 0 2px 24px rgba(0, 0, 0, 0.5);
+  text-shadow: 0 2px 24px rgba(0, 0, 0, 0.5),
+    0 0 38px color-mix(in srgb, currentColor 22%, transparent);
+  transition: color 0.6s ease;
 }
 
 .hero__unit {
@@ -287,7 +262,6 @@ code {
   padding-top: 8px;
 }
 
-/* лінія розгортки, що пробігає при завантаженні */
 .hero__sweep {
   position: absolute;
   inset: 0;
@@ -304,14 +278,11 @@ code {
   animation: sweep 1.4s ease-out 0.2s 1;
 }
 
-/* ===========================================================
-   Загальна панель (фрезерований блок)
-   =========================================================== */
-
 .panel {
   border: 1px solid var(--steel-line);
   border-radius: var(--r);
   background: linear-gradient(180deg, var(--steel-800), var(--steel-850));
+  box-shadow: var(--bevel-top), var(--lift);
   padding: 18px 20px 20px;
   margin-bottom: var(--gap);
 }
@@ -325,13 +296,24 @@ code {
 }
 
 .panel__title {
-  font-size: 12px;
+  position: relative;
+  font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.28em;
-  padding-left: 0.28em;
+  letter-spacing: 0.3em;
+  padding-left: 15px;
   text-transform: uppercase;
   color: var(--bone);
   margin: 0;
+}
+.panel__title::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 11px;
+  background: var(--patina);
 }
 
 .panel__note {
@@ -350,12 +332,8 @@ code {
   font-family: 'JetBrains Mono', monospace;
   font-size: 14px;
   font-weight: 500;
-  font-variant-numeric: tabular-nums;
+  font-variant-numeric: tabular-nums slashed-zero;
 }
-
-/* ===========================================================
-   VITALS — рядок показників (машиновані датчики)
-   =========================================================== */
 
 .vitals {
   display: grid;
@@ -369,11 +347,16 @@ code {
   border: 1px solid var(--steel-line);
   border-radius: var(--r);
   background: linear-gradient(180deg, var(--steel-800), var(--steel-850));
+  box-shadow: var(--bevel-top), var(--lift);
   padding: 15px 16px 16px;
   overflow: hidden;
+  transition: transform 0.18s ease, border-color 0.18s ease;
+}
+.gauge:hover {
+  transform: translateY(-1px);
+  border-color: var(--zinc-dim);
 }
 
-/* кольорова кромка-індикатор зверху датчика */
 .gauge__edge {
   position: absolute;
   top: 0;
@@ -388,7 +371,6 @@ code {
   inset: 0;
   width: var(--fill, 0%);
   background: var(--accent, var(--patina));
-  box-shadow: 0 0 10px var(--accent, var(--patina));
   transition: width 0.5s ease;
 }
 
@@ -402,7 +384,7 @@ code {
 .gauge__label {
   font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.24em;
   text-transform: uppercase;
   color: var(--zinc);
 }
@@ -419,12 +401,13 @@ code {
 .gauge__value {
   font-family: 'JetBrains Mono', monospace;
   font-weight: 800;
-  font-size: 32px;
-  line-height: 1;
+  font-size: 33px;
+  line-height: 0.95;
   letter-spacing: -0.02em;
-  font-variant-numeric: tabular-nums;
+  font-variant-numeric: tabular-nums slashed-zero;
   color: var(--bone);
-  margin-bottom: 12px;
+  margin-bottom: 13px;
+  transition: color 0.5s ease;
 }
 .gauge__value .u {
   font-size: 16px;
@@ -433,13 +416,13 @@ code {
   margin-left: 2px;
 }
 
-/* сегментований індикатор (як LED-шкала приладу) */
 .meter {
   position: relative;
   height: 7px;
   border-radius: 2px;
   background: var(--steel-900);
   border: 1px solid var(--steel-line-soft);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.5);
   overflow: hidden;
 }
 .meter__fill {
@@ -447,8 +430,9 @@ code {
   inset: 0;
   border-radius: 1px;
   transition: width 0.5s ease, background 0.5s ease;
+  animation: needle 0.7s cubic-bezier(0.2, 0.7, 0.2, 1);
 }
-/* насічки сегментів поверх заливки */
+
 .meter::after {
   content: '';
   position: absolute;
@@ -469,10 +453,6 @@ code {
   letter-spacing: 0.01em;
 }
 
-/* ===========================================================
-   SCOPES — два графіки треку
-   =========================================================== */
-
 .scopes {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
@@ -482,11 +462,9 @@ code {
 
 .recharts-cartesian-axis-tick-value {
   font-family: 'JetBrains Mono', monospace;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
 }
-
-/* ===========================================================
-   CORE ARRAY — масив ядер
-   =========================================================== */
 
 .matrix {
   display: flex;
@@ -509,14 +487,22 @@ code {
 
 .matrix__strip {
   display: flex;
-  gap: 2px;
-  height: 16px;
+  gap: 1px;
+  height: 18px;
+  padding: 1px;
+  background: var(--steel-900);
+  border: 1px solid var(--steel-line-soft);
+  border-radius: 2px;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.45);
+}
+
+.matrix__row {
+  animation: power-on 0.4s ease both;
 }
 
 .matrix__cell {
   flex: 1 1 0;
   min-width: 2px;
-  border-radius: 1px;
   transition: background 0.5s ease, opacity 0.5s ease;
 }
 
@@ -524,12 +510,9 @@ code {
   font-family: 'JetBrains Mono', monospace;
   font-size: 11px;
   text-align: right;
-  font-variant-numeric: tabular-nums;
+  font-variant-numeric: tabular-nums slashed-zero;
+  transition: color 0.5s ease;
 }
-
-/* ===========================================================
-   VOLUMES — змонтовані томи
-   =========================================================== */
 
 .disks {
   display: flex;
@@ -560,6 +543,7 @@ code {
   font-size: 14px;
   font-weight: 500;
   color: var(--bone);
+  font-variant-numeric: tabular-nums slashed-zero;
 }
 .disk__name {
   font-family: 'Chakra Petch', sans-serif;
@@ -581,14 +565,11 @@ code {
   font-weight: 500;
 }
 
-/* ===========================================================
-   Порожній стан / очікування сервера
-   =========================================================== */
-
 .standby {
   border: 1px solid var(--steel-line);
   border-radius: var(--r);
   background: linear-gradient(180deg, var(--steel-800), var(--steel-850));
+  box-shadow: var(--bevel-top), var(--lift);
   padding: 64px 32px;
   text-align: center;
 }
@@ -609,9 +590,14 @@ code {
   margin: 0 auto;
 }
 
-/* ===========================================================
-   Підвал
-   =========================================================== */
+.standby__cmd {
+  display: inline-block;
+  margin-top: 16px;
+}
+
+.standby__control {
+  margin-top: 24px;
+}
 
 .colophon {
   display: flex;
@@ -636,10 +622,6 @@ code {
   color: var(--zinc);
 }
 
-/* ===========================================================
-   Анімації приладу
-   =========================================================== */
-
 @keyframes pulse-led {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.45; }
@@ -655,6 +637,9 @@ code {
   from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
 }
+@keyframes needle {
+  from { width: 0; }
+}
 
 .power > * {
   animation: power-on 0.5s ease both;
@@ -665,17 +650,34 @@ code {
 .power > *:nth-child(4) { animation-delay: 0.2s; }
 .power > *:nth-child(5) { animation-delay: 0.26s; }
 
-/* ---------- доступність ---------- */
-
 :focus-visible {
-  outline: 2px solid var(--patina);
+  outline: 1px solid var(--patina);
   outline-offset: 2px;
   border-radius: 2px;
+  box-shadow: 0 0 0 3px var(--patina-glow);
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--steel-line) transparent;
+}
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+*::-webkit-scrollbar-thumb {
+  background: var(--steel-line);
+  border-radius: 999px;
+  border: 2px solid var(--steel-900);
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--zinc-dim);
 }
 
 @media (max-width: 560px) {
   .app { padding: 0 16px 48px; }
   .hero__sub { display: none; }
+  .hero__head { display: none; }
   .hero__value { font-size: clamp(48px, 16vw, 72px); }
   .face-meta { gap: 14px; }
 }
@@ -685,13 +687,17 @@ code {
   .power > *,
   .hero__sweep,
   .signal.is-on .signal__led,
+  .stress.is-hot,
+  .alarm-strip,
+  .overheat__led,
   .mark__bar {
     animation: none !important;
     transition: none !important;
   }
 }
 
-.theme-toggle {
+.theme-toggle,
+.lang-toggle {
   font-family: 'Chakra Petch', sans-serif;
   font-size: 11px;
   font-weight: 600;
@@ -705,9 +711,113 @@ code {
   cursor: pointer;
   transition: color 0.2s ease, border-color 0.2s ease;
 }
-.theme-toggle:hover {
+.theme-toggle:hover,
+.lang-toggle:hover {
   color: var(--bone);
   border-color: var(--zinc);
+}
+
+.stress {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Chakra Petch', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--bone);
+  background: var(--steel-750);
+  border: 1px solid var(--zinc-dim);
+  border-radius: 999px;
+  padding: 6px 14px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease,
+    box-shadow 0.2s ease;
+}
+.stress:hover {
+  border-color: var(--amber);
+  box-shadow: 0 0 14px rgba(224, 160, 58, 0.3);
+}
+.stress__led {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--amber);
+  box-shadow: 0 0 8px var(--amber);
+  flex: none;
+}
+.stress.is-hot {
+  color: var(--bone);
+  border-color: var(--ember);
+  background: var(--ember);
+  box-shadow: 0 0 16px rgba(226, 84, 58, 0.45);
+  animation: pulse-led 1.1s ease-in-out infinite;
+}
+.stress.is-hot .stress__led {
+  background: var(--bone);
+  box-shadow: none;
+}
+
+.panel__control {
+  align-self: center;
+}
+
+.hero__control {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  z-index: 4;
+}
+
+.alarm-strip {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--ember);
+  box-shadow: 0 0 18px 2px rgba(226, 84, 58, 0.7);
+  z-index: 30;
+  animation: alarm-pulse 1s ease-in-out infinite;
+}
+
+.overheat {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  font-family: 'Chakra Petch', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  padding: 5px 12px 5px 10px;
+  border: 1px solid var(--ember);
+  border-radius: 999px;
+  color: var(--ember);
+  background: rgba(226, 84, 58, 0.12);
+  white-space: nowrap;
+}
+.overheat__led {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--ember);
+  box-shadow: 0 0 10px var(--ember);
+  animation: pulse-led 0.8s ease-in-out infinite;
+}
+
+.app.is-alarm .faceplate {
+  border-bottom-color: var(--ember);
+}
+.app.is-alarm .hero {
+  border-color: rgba(226, 84, 58, 0.5);
+}
+
+@keyframes alarm-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
 }
 
 :root[data-theme='paper'] {
@@ -721,6 +831,8 @@ code {
   --zinc: #6b6459;
   --zinc-dim: #9a9384;
   --patina-glow: transparent;
+  --bevel-top: inset 0 1px 0 rgba(255, 255, 255, 0.65);
+  --lift: 0 1px 1px rgba(120, 112, 96, 0.18);
 }
 
 html[data-theme='paper'] body {
@@ -739,6 +851,7 @@ html[data-theme='paper'] .signal.is-on .signal__led {
   box-shadow: 0 0 5px var(--patina);
 }
 
-html[data-theme='paper'] .gauge__edge::after {
-  box-shadow: none;
+:root[data-theme='paper'] .meter,
+:root[data-theme='paper'] .matrix__strip {
+  box-shadow: inset 0 1px 2px rgba(120, 112, 96, 0.22);
 }

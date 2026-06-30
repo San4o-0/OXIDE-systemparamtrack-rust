@@ -1,9 +1,11 @@
 import type { DiskMetrics } from '../types'
 import { formatBytes, usageColor } from '../utils'
+import { useI18n } from '../i18n'
 
 export function DiskList({ disks }: { disks: DiskMetrics[] }) {
+  const { t } = useI18n()
   if (disks.length === 0) {
-    return <div className="gauge__sub">Томів не знайдено.</div>
+    return <div className="gauge__sub">{t('disks.empty')}</div>
   }
 
   return (

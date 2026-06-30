@@ -1,11 +1,13 @@
 import type { MetricsPoint } from '../api/useMetricsStream'
 import { usageColor } from '../utils'
+import { useI18n } from '../i18n'
 
 export function CoreMatrix({ history }: { history: MetricsPoint[] }) {
+  const { t } = useI18n()
   const last = history[history.length - 1]
   const cores = last?.cpu.per_core.length ?? 0
   if (!cores) {
-    return <div className="gauge__sub">Очікування відліків…</div>
+    return <div className="gauge__sub">{t('matrix.waiting')}</div>
   }
 
   return (
@@ -13,7 +15,7 @@ export function CoreMatrix({ history }: { history: MetricsPoint[] }) {
       {Array.from({ length: cores }, (_, core) => {
         const current = last.cpu.per_core[core] ?? 0
         return (
-          <div className="matrix__row" key={core}>
+          <div className="matrix__row" key={core} style={{ animationDelay: `${core * 35}ms` }}>
             <span className="matrix__idx">#{core}</span>
             <div className="matrix__strip">
               {history.map((p, t) => {
@@ -24,7 +26,7 @@ export function CoreMatrix({ history }: { history: MetricsPoint[] }) {
                     className="matrix__cell"
                     style={{
                       background: usageColor(u),
-                      opacity: 0.2 + (Math.min(u, 100) / 100) * 0.8,
+                      opacity: 0.32 + (Math.min(u, 100) / 100) * 0.68,
                     }}
                     title={`${u.toFixed(0)}%`}
                   />

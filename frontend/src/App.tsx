@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useMetricsStream } from './api/useMetricsStream'
+import { useStressTest } from './api/useStressTest'
 import { MetricCard } from './components/MetricCard'
 import { CpuChart } from './components/CpuChart'
 import { MemoryChart } from './components/MemoryChart'
@@ -8,10 +9,28 @@ import { CoreMatrix } from './components/CoreMatrix'
 import { NetworkChart } from './components/NetworkChart'
 import { formatBytes, formatRate, OXIDE, tempColor, usageColor } from './utils'
 import { CHART_THEME, readTheme, THEME_KEY, type ThemeName } from './theme'
+import { useI18n } from './i18n'
 
 export default function App() {
   const { latest, history, connected } = useMetricsStream()
+  const { t, lang, setLang } = useI18n()
+  const cpuLoad = useStressTest('cpu')
+  const ramLoad = useStressTest('ram')
   const [theme, setTheme] = useState<ThemeName>(readTheme)
+  const [alarm, setAlarm] = useState(false)
+
+  useEffect(() => {
+    if (!latest) {
+      setAlarm(false)
+      return
+    }
+    const u = latest.cpu.global_usage
+    setAlarm((prev) => {
+      if (prev) return u >= 75
+      const tail = history.slice(-4)
+      return tail.length >= 4 && tail.every((p) => p.cpu.global_usage >= 85)
+    })
+  }, [latest, history])
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme
@@ -22,7 +41,7 @@ export default function App() {
     }
   }, [theme])
 
-  const t = CHART_THEME[theme]
+  const chart = CHART_THEME[theme]
 
   const cores = latest?.cpu.per_core.length ?? 0
   const peak = history.reduce((m, p) => Math.max(m, p.cpu.global_usage), 0)
@@ -32,59 +51,90 @@ export default function App() {
       : 0
   const temp = latest?.cpu.temp_c ?? null
 
+  const loadButton = (
+    load: ReturnType<typeof useStressTest>,
+    cls: string,
+    label: string,
+  ) => (
+    <button
+      type="button"
+      className={`stress ${cls} ${load.running ? 'is-hot' : ''}`}
+      onClick={load.running ? load.stop : load.start}
+      aria-label={label}
+    >
+      <span className="stress__led" aria-hidden="true" />
+      {load.running ? t('load.stop', { n: load.secondsLeft }) : label}
+    </button>
+  )
+
   return (
-    <div className="app">
+    <div className={`app ${alarm ? 'is-alarm' : ''}`}>
+      {alarm && <div className="alarm-strip" aria-hidden="true" />}
       <header className="faceplate">
         <div className="mark">
           <span className="mark__name">OXIDE</span>
           <span className="mark__bar" aria-hidden="true" />
-          <span className="mark__kind">телеметрія</span>
+          <span className="mark__kind">{t('mark.kind')}</span>
         </div>
         <div className="face-meta">
           <span className="face-meta__host">
             host <b>localhost:3000</b>
-            {cores > 0 && <> · <b>{cores}</b> ядер</>}
+            {cores > 0 && <> · {t('face.cores', { n: cores })}</>}
           </span>
+          {alarm && (
+            <span className="overheat" role="status">
+              <span className="overheat__led" aria-hidden="true" />
+              {t('overheat')}
+            </span>
+          )}
+          <button
+            type="button"
+            className="lang-toggle"
+            onClick={() => setLang(lang === 'uk' ? 'en' : 'uk')}
+            aria-label={t('lang.aria')}
+          >
+            {lang === 'uk' ? 'EN' : 'UK'}
+          </button>
           <button
             type="button"
             className="theme-toggle"
             onClick={() => setTheme(theme === 'oxide' ? 'paper' : 'oxide')}
-            aria-label="Перемкнути тему"
+            aria-label={t('theme.aria')}
           >
-            {theme === 'oxide' ? 'папір' : 'сталь'}
+            {theme === 'oxide' ? t('theme.paper') : t('theme.steel')}
           </button>
           <span className={`signal ${connected ? 'is-on' : 'is-off'}`} role="status">
             <span className="signal__led" aria-hidden="true" />
-            {connected ? 'сигнал' : 'немає зв’язку'}
+            {connected ? t('signal.on') : t('signal.off')}
           </span>
         </div>
       </header>
 
       {!latest ? (
         <div className="standby">
-          <p className="standby__title">очікування сигналу</p>
-          <p className="standby__body">
-            Прилад під’єднано до <code>localhost:3000/api/stream</code>, але потоку ще
-            немає. Запусти бекенд: <code>cd backend &amp;&amp; cargo run</code> — і трек
-            оживе щосекунди.
-          </p>
+          <p className="standby__title">{t('standby.title')}</p>
+          <p className="standby__body">{t('standby.body')}</p>
+          <code className="standby__cmd">cd backend &amp;&amp; cargo run</code>
+          {loadButton(cpuLoad, 'standby__control', t('load.cpu'))}
         </div>
       ) : (
         <main className="power">
-          {/* HERO — глобальне навантаження як жива осцилограма */}
-          <section className="hero" aria-label="Глобальне завантаження CPU">
-            <span className="hero__head">global load</span>
+          <section className="hero" aria-label={t('hero.head')}>
+            <span className="hero__head">{t('hero.head')}</span>
+            {loadButton(cpuLoad, 'hero__control', t('load.cpu'))}
             <div className="hero__sub">
               {temp != null && (
                 <>
-                  <div className="tag">температура</div>
+                  <div className="tag">{t('hero.temp')}</div>
                   <b style={{ color: tempColor(temp) }}>{temp.toFixed(0)}°C</b>
                 </>
               )}
-              <div className="tag" style={{ marginTop: 8 }}>пік за {history.length}с</div>
+              <div className="tag" style={{ marginTop: 8 }}>
+                {t('hero.peak', { n: history.length })}
+              </div>
               <b>{peak.toFixed(1)}%</b>
-              <div className="tag" style={{ marginTop: 8 }}>такт</div>
-              <b>1.00 с</b>
+              <div className="tag" style={{ marginTop: 8 }}>{t('hero.tick')}</div>
+              <b>{t('hero.tickValue')}</b>
             </div>
             <div className="hero__readout">
               <span
@@ -96,20 +146,23 @@ export default function App() {
               <span className="hero__unit">%</span>
             </div>
             <div className="hero__plot">
-              <CpuChart data={history} t={t} height={320} hero />
+              <CpuChart data={history} t={chart} height={320} hero />
             </div>
             <span className="hero__sweep" aria-hidden="true" />
           </section>
 
-          {/* VITALS — показники */}
-          <section className="vitals" aria-label="Ключові показники">
+          <section className="vitals" aria-label={t('hero.head')}>
             <MetricCard
               label="CPU"
               index="cpu"
               value={latest.cpu.global_usage.toFixed(1)}
               unit="%"
               percent={latest.cpu.global_usage}
-              subtitle={temp != null ? `${cores} ядер · ${temp.toFixed(0)}°C` : `${cores} логічних ядер`}
+              subtitle={
+                temp != null
+                  ? t('vital.cpu.subTemp', { n: cores, t: temp.toFixed(0) })
+                  : t('vital.cpu.sub', { n: cores })
+              }
             />
             <MetricCard
               label="RAM"
@@ -126,37 +179,36 @@ export default function App() {
               index="swp"
               value={formatBytes(latest.memory.swap_used_bytes)}
               percent={swapPercent}
-              subtitle={`усього ${formatBytes(latest.memory.swap_total_bytes)}`}
+              subtitle={t('vital.swap.sub', { x: formatBytes(latest.memory.swap_total_bytes) })}
             />
             <MetricCard
-              label="Томи"
+              label={t('vital.disks')}
               index="vol"
               value={`${latest.disks.length}`}
-              subtitle="змонтованих"
+              subtitle={t('vital.disks.sub')}
             />
           </section>
 
-          {/* SCOPES — треки */}
-          <section className="scopes" aria-label="Графіки треку">
+          <section className="scopes" aria-label={t('panel.cpu')}>
             <div className="panel">
               <div className="panel__head">
-                <h2 className="panel__title">CPU · трек</h2>
-                <span className="panel__note">{history.length} відліків · %</span>
+                <h2 className="panel__title">{t('panel.cpu')}</h2>
+                <span className="panel__note">{t('note.samples', { n: history.length })}</span>
               </div>
-              <CpuChart data={history} t={t} />
+              <CpuChart data={history} t={chart} />
             </div>
             <div className="panel">
               <div className="panel__head">
-                <h2 className="panel__title">RAM · трек</h2>
-                <span className="panel__note">{history.length} відліків · %</span>
+                <h2 className="panel__title">{t('panel.ram')}</h2>
+                {loadButton(ramLoad, 'panel__control', t('load.ram'))}
               </div>
-              <MemoryChart data={history} t={t} />
+              <MemoryChart data={history} t={chart} />
             </div>
           </section>
 
-          <section className="panel" aria-label="Мережевий трафік">
+          <section className="panel" aria-label={t('panel.net')}>
             <div className="panel__head">
-              <h2 className="panel__title">Мережа</h2>
+              <h2 className="panel__title">{t('panel.net')}</h2>
               <div className="net-readout">
                 <span className="net-stat" style={{ color: OXIDE.patina }}>
                   ↓ {formatRate(latest.network.rx_bytes_per_sec)}
@@ -166,24 +218,23 @@ export default function App() {
                 </span>
               </div>
             </div>
-            <NetworkChart data={history} t={t} />
+            <NetworkChart data={history} t={chart} />
           </section>
 
-          <section className="panel" aria-label="Теплова матриця ядер">
+          <section className="panel" aria-label={t('panel.cores')}>
             <div className="panel__head">
-              <h2 className="panel__title">Масив ядер</h2>
+              <h2 className="panel__title">{t('panel.cores')}</h2>
               <span className="panel__note">
-                ядро × час · {history.length}с · {cores} логічних
+                {t('note.matrix', { n: history.length, k: cores })}
               </span>
             </div>
             <CoreMatrix history={history} />
           </section>
 
-          {/* VOLUMES — томи */}
-          <section className="panel" aria-label="Змонтовані томи">
+          <section className="panel" aria-label={t('panel.volumes')}>
             <div className="panel__head">
-              <h2 className="panel__title">Томи</h2>
-              <span className="panel__note">зайнято / усього</span>
+              <h2 className="panel__title">{t('panel.volumes')}</h2>
+              <span className="panel__note">{t('note.volumes')}</span>
             </div>
             <DiskList disks={latest.disks} />
           </section>
@@ -191,7 +242,7 @@ export default function App() {
       )}
 
       <footer className="colophon">
-        <span>OXIDE · приладова телеметрія</span>
+        <span>{t('colophon')}</span>
         <span className="colophon__stack">
           <span>Rust</span> axum <span>sysinfo</span> · SSE · <span>React</span> recharts
         </span>

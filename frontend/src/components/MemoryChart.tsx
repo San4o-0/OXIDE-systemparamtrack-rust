@@ -57,7 +57,14 @@ export function MemoryChart({ data, t }: { data: MetricsPoint[]; t: ChartTheme }
             fontFamily: 'JetBrains Mono, monospace',
             fontSize: 12,
           }}
-          labelStyle={{ color: t.axis, fontSize: 11 }}
+          labelStyle={{
+            color: t.ink,
+            fontSize: 10,
+            fontFamily: 'Chakra Petch, sans-serif',
+            letterSpacing: '0.18em',
+            textTransform: 'uppercase',
+            marginBottom: 4,
+          }}
           itemStyle={{ color: t.ink }}
         />
         <Area

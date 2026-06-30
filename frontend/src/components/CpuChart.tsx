@@ -1,14 +1,15 @@
 import {
+  Area,
+  AreaChart,
   CartesianGrid,
-  Line,
-  LineChart,
+  ReferenceLine,
   ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
 } from 'recharts'
 import type { MetricsPoint } from '../api/useMetricsStream'
-import { usageColor } from '../utils'
+import { OXIDE, usageColor } from '../utils'
 import type { ChartTheme } from '../theme'
 
 interface Props {
@@ -24,16 +25,22 @@ export function CpuChart({ data, t, height = 240, hero = false }: Props) {
     cpu: Number(p.cpu.global_usage.toFixed(1)),
   }))
 
-  // лінія сигналу окислюється від поточного нагріву
   const current = points.length ? points[points.length - 1].cpu : 0
   const stroke = usageColor(current)
+  const fillId = hero ? 'cpuFillHero' : 'cpuFill'
 
   return (
     <ResponsiveContainer width="100%" height={height}>
-      <LineChart
+      <AreaChart
         data={points}
         margin={{ top: hero ? 56 : 8, right: 12, bottom: 0, left: hero ? 4 : -18 }}
       >
+        <defs>
+          <linearGradient id={fillId} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={stroke} stopOpacity={hero ? 0.34 : 0.22} />
+            <stop offset="100%" stopColor={stroke} stopOpacity={0.02} />
+          </linearGradient>
+        </defs>
         <CartesianGrid stroke={t.grid} strokeWidth={hero ? 1 : 0.6} vertical />
         <XAxis
           dataKey="time"
@@ -56,7 +63,7 @@ export function CpuChart({ data, t, height = 240, hero = false }: Props) {
           orientation={hero ? 'right' : 'left'}
         />
         <Tooltip
-          cursor={{ stroke: stroke, strokeWidth: 1, strokeDasharray: '3 3' }}
+          cursor={{ stroke, strokeWidth: 1, strokeDasharray: '3 3' }}
           contentStyle={{
             background: t.panel,
             border: `1px solid ${t.grid}`,
@@ -64,21 +71,49 @@ export function CpuChart({ data, t, height = 240, hero = false }: Props) {
             fontFamily: 'JetBrains Mono, monospace',
             fontSize: 12,
           }}
-          labelStyle={{ color: t.axis, fontSize: 11 }}
+          labelStyle={{
+            color: t.ink,
+            fontSize: 10,
+            fontFamily: 'Chakra Petch, sans-serif',
+            letterSpacing: '0.18em',
+            textTransform: 'uppercase',
+            marginBottom: 4,
+          }}
           itemStyle={{ color: t.ink }}
         />
-        <Line
+        <ReferenceLine
+          y={85}
+          stroke={OXIDE.ember}
+          strokeDasharray="2 4"
+          strokeWidth={1}
+          ifOverflow="extendDomain"
+          label={
+            hero
+              ? {
+                  value: 'ALARM 85',
+                  position: 'insideTopRight',
+                  fill: OXIDE.ember,
+                  fontSize: 9,
+                  fontFamily: 'Chakra Petch',
+                  letterSpacing: '0.18em',
+                  dy: -4,
+                }
+              : undefined
+          }
+        />
+        <Area
           type="monotone"
           dataKey="cpu"
           name="CPU"
           unit="%"
           stroke={stroke}
           strokeWidth={hero ? 2.4 : 1.8}
+          fill={`url(#${fillId})`}
           dot={false}
           activeDot={{ r: 3, fill: stroke, stroke: t.panel, strokeWidth: 2 }}
           isAnimationActive={false}
         />
-      </LineChart>
+      </AreaChart>
     </ResponsiveContainer>
   )
 }
