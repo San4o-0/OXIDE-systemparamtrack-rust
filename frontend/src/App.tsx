@@ -122,20 +122,6 @@ export default function App() {
           <section className="hero" aria-label={t('hero.head')}>
             <span className="hero__head">{t('hero.head')}</span>
             {loadButton(cpuLoad, 'hero__control', t('load.cpu'))}
-            <div className="hero__sub">
-              {temp != null && (
-                <>
-                  <div className="tag">{t('hero.temp')}</div>
-                  <b style={{ color: tempColor(temp) }}>{temp.toFixed(0)}°C</b>
-                </>
-              )}
-              <div className="tag" style={{ marginTop: 8 }}>
-                {t('hero.peak', { n: history.length })}
-              </div>
-              <b>{peak.toFixed(1)}%</b>
-              <div className="tag" style={{ marginTop: 8 }}>{t('hero.tick')}</div>
-              <b>{t('hero.tickValue')}</b>
-            </div>
             <div className="hero__readout">
               <span
                 className="hero__value"
@@ -144,6 +130,22 @@ export default function App() {
                 {latest.cpu.global_usage.toFixed(1)}
               </span>
               <span className="hero__unit">%</span>
+              <div className="hero__chips">
+                <span className="chip">
+                  <b>{cores}</b>
+                  <span className="chip__k">{t('chip.cores')}</span>
+                </span>
+                {temp != null && (
+                  <span className="chip">
+                    <b style={{ color: tempColor(temp) }}>{temp.toFixed(0)}°C</b>
+                    <span className="chip__k">{t('chip.temp')}</span>
+                  </span>
+                )}
+                <span className="chip">
+                  <b>{peak.toFixed(0)}%</b>
+                  <span className="chip__k">{t('chip.peak')}</span>
+                </span>
+              </div>
             </div>
             <div className="hero__plot">
               <CpuChart data={history} t={chart} height={320} hero />
